@@ -34,9 +34,14 @@ for evnt in events:
     time_stamp   = Literal(raw_event["TimeStamp"])
     status       = Literal(raw_event["Status"])
     image        = URIRef(raw_event["Image"])
-    
+    category     = URIRef("https://www.predictit.org/Market/" + raw_event["Category"])
+    category_name=Literal(raw_event["Category"])
     g.add( (event, RDF.type, FOAF.Event) )
     g.add( (image, RDF.type, FOAF.Image) )
+    g.add( (category, RDF.type, FOAF.Category) )
+    g.add( (category, FOAF.name, category_name) )
+    g.add( (event, FOAF.category, category) )
+    g.add( (category, FOAF.includes, event) )
     g.add( (event, FOAF.image, image) )
     g.add( (event, FOAF.name, name) )
     g.add( (event, FOAF.ID, ID) )
@@ -70,6 +75,7 @@ for evnt in events:
         g.add( (contract, FOAF.event, event) )
         
         g.add( (contract, FOAF.image, image) )
+        g.add( (contract, FOAF.category, category) )
         g.add( (contract, FOAF.name, name) )
         g.add( (contract, FOAF.ID, ID) )
         g.add( (contract, FOAF.short_name, short_name) )
@@ -85,6 +91,7 @@ for evnt in events:
         g.add( (contract, FOAF.last_close_price, last_close_p) )
 
 #query all short-names of events (not contracts):
+print("Example 1, Queries all short names for events only (not for contracts)")
 for s,_,n in g.triples((None, RDF['type'], FOAF.Event)):
     #get all objects of type event
     my_triples= g.triples((s, FOAF['short_name'], None))
@@ -92,3 +99,15 @@ for s,_,n in g.triples((None, RDF['type'], FOAF.Event)):
     for t, _, m in my_triples:
         print(m)
 
+print("\n\n\n\nExample 2, Queries all shortnames for events only in the US politics category")
+
+my_triples=[]
+
+for c,_,_ in g.triples((None, FOAF['name'], Literal("us_politics"))):
+    
+    for d,_, e in g.triples((c, FOAF['includes'], None)):
+        
+        my_triples.extend(list(g.triples((e, FOAF['short_name'], None))))
+        
+for _, _, n in my_triples:
+    print(n)
