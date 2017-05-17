@@ -7,6 +7,8 @@ import sys, os
 sys.path.append(os.path.abspath("../vars"))
 from env_vars import *
 
+wikidict={"Trump": "https://en.wikipedia.org/wiki/Donald_Trump", "Clinton": "https://en.wikipedia.org/wiki/Hillary_Clinton", "Ossoff": "https://en.wikipedia.org/wiki/Jon_Ossoff", "Virginia": "https://en.wikipedia.org/wiki/Virginia", "Georgia": "https://en.wikipedia.org/wiki/Georgia_(U.S._state)","Election":"https://en.wikipedia.org/wiki/Elections_in_the_United_States"}
+
 pyredictit_api = pyredictit()
 pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
@@ -49,6 +51,11 @@ for evnt in events:
     g.add( (event, FOAF.short_name, short_name) )
     g.add( (event, FOAF.time_stamp, time_stamp) )
     g.add( (event, FOAF.status, status) )
+    for ref in raw_event["References"]:
+        reference = URIRef(ref)
+        g.add( (reference, FOAF.is_refered_to_by, event) )
+        g.add( (event, FOAF.refers_to, reference) )
+        
     for cont in raw_event["Contracts"]:
         contract     = URIRef(cont["URL"])
         name         = Literal(cont["Name"])
@@ -111,3 +118,27 @@ for c,_,_ in g.triples((None, FOAF['name'], Literal("us_politics"))):
         
 for _, _, n in my_triples:
     print(n)
+
+print("\n\n\n\nExample 3, Queries all events that refer to Donald Trump")
+
+trump= URIRef(wikidict["Trump"])
+
+my_triples=[]
+for e,_,t in g.triples((None, FOAF['refers_to'], trump)):
+    my_triples.extend(list(g.triples((e, FOAF['short_name'], None))))
+
+for _, _, n in my_triples:
+    print(n)
+
+
+print("\n\n\n\nExample 4, Queries all events that refer to Hillary Clinton")
+
+clinton = URIRef(wikidict["Clinton"])
+
+my_triples=[]
+for e,_,t in g.triples((None, FOAF['refers_to'], clinton)):
+    my_triples.extend(list(g.triples((e, FOAF['short_name'], None))))
+
+for _, _, n in my_triples:
+    print(n)
+                
