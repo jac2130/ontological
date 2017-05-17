@@ -63,7 +63,12 @@ for evnt in events:
         
         g.add( (image, RDF.type, FOAF.Image) )
         g.add( (contract, RDF.type, FOAF.Contract) )
+        #for easy traversing both ways, between contracts and events,
+        #we draw the arrow both ways:
+        
         g.add( (event, FOAF.contract, contract) )
+        g.add( (contract, FOAF.event, event) )
+        
         g.add( (contract, FOAF.image, image) )
         g.add( (contract, FOAF.name, name) )
         g.add( (contract, FOAF.ID, ID) )
