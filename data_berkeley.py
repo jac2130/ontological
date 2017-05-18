@@ -44,6 +44,7 @@ for evnt in events:
     g.add( (event, FOAF.status, status) )
     for ref in raw_event["References"]:
         reference = URIRef(ref)
+        #print(ref)
         g.add( (reference, FOAF.is_refered_to_by, event) )
         g.add( (event, FOAF.refers_to, reference) )
     for cont in raw_event["Contracts"]:
@@ -92,6 +93,7 @@ trump= URIRef(wikidict["Trump"])
 
 my_triples=[]
 for e,_,t in g.triples((None, FOAF['refers_to'], trump)):
+    #print(e)
     my_triples.extend(list(g.triples((e, FOAF['short_name'], None))))
 
 for _, _, n in my_triples:
