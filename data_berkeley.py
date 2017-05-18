@@ -15,7 +15,10 @@ pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
 
 n = Namespace("https://www.predictit.org/Market/")
-g = Graph()
+
+g = Graph('Sleepycat', identifier='predictit')
+# first time create the store:
+graph.open('/root/data/', create = True)
 
 for evnt in events:
     raw_event = json.loads(evnt)
@@ -98,3 +101,5 @@ for e,_,t in g.triples((None, FOAF['refers_to'], trump)):
 
 for _, _, n in my_triples:
     print(n)
+
+graph.close()
