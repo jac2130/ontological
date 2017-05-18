@@ -1,3 +1,4 @@
+import sqlite3
 from rdflib import Graph, URIRef, BNode, Literal, Namespace
 from rdflib.namespace import RDF, FOAF
 import rdflib
@@ -7,7 +8,31 @@ import sys, os
 sys.path.append(os.path.abspath("../vars"))
 from env_vars import *
 
-wikidict={"Trump": "https://en.wikipedia.org/wiki/Donald_Trump", "Clinton": "https://en.wikipedia.org/wiki/Hillary_Clinton", "Ossoff": "https://en.wikipedia.org/wiki/Jon_Ossoff", "Virginia": "https://en.wikipedia.org/wiki/Virginia", "Georgia": "https://en.wikipedia.org/wiki/Georgia_(U.S._state)","Election":"https://en.wikipedia.org/wiki/Elections_in_the_United_States"}
+wikidict={"Trump": "http://dbpedia.org/resource/Donald_Trump",
+          "Clinton": "http://dbpedia.org/resource/Hillary_Clinton", "Ossoff": "https://en.wikipedia.org/wiki/Jon_Ossoff", "Virginia": "https://en.wikipedia.org/wiki/Virginia", "Georgia": "https://en.wikipedia.org/wiki/Georgia_(U.S._state)","Election":"https://en.wikipedia.org/wiki/Elections_in_the_United_States"}
+
+def handle_missing(thing):
+    try:
+        thing=float(thing)
+    except:
+        thing = thing
+        
+    if type(thing)!=type(float(1)):
+        return float(-1.0)
+    else:
+        return thing
+###############SQLITE###############
+conn = sqlite3.connect('predictit.db')
+cursor = conn.cursor()
+# Create tables (only need to do this once)
+"""
+cursor.execute('''CREATE TABLE questions
+             (name text, ID text, ticker text, short_name text, time_stamp text, status text, image_url text, category text, category_url text)''')
+
+cursor.execute('''CREATE TABLE contracts
+             (name text, ID text, question text, ticker text, short_name text, long_name text, date_end text, status text, image_url text, last_trade_price real, best_buy_yes real, best_buy_no real, best_sell_yes real, best_sell_no real, last_close_price real)''')
+"""
+##############TABLES##########################################
 
 pyredictit_api = pyredictit()
 pyredictit_api.create_authed_session(username=user_name,password=password)
@@ -17,6 +42,29 @@ n = Namespace("https://www.predictit.org/Market/")
 g = Graph()
 
 for evnt in events:
+    ######first SQLITE #############
+    # Insert a row of data
+    raw_event = json.loads(evnt)
+    event_str    = str(raw_event["URL"])
+    name         = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["Name"]).split()])
+    
+    ID_str       = str(raw_event["ID"])
+    ticker       = str(raw_event["TickerSymbol"])
+    short_name   = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["ShortName"]).split()])
+    
+    time_stamp   = str(raw_event["TimeStamp"])
+    status       = str(raw_event["Status"])
+    image        = str(raw_event["Image"])
+    category     = str("https://www.predictit.org/Market/" + raw_event["Category"])
+    category_name= str(raw_event["Category"])
+    
+    values = str(tuple((name,ID_str, ticker, short_name, time_stamp, status, image, category_name, category)))
+    #print(values)
+    cursor.execute("INSERT INTO questions VALUES" + str(values))
+    
+    # Save (commit) the changes
+    conn.commit()
+    ####################################################################
     """
     this is where the dbpedia parser goes, and each entity that will be discovered
     will have a type associated with it, like so:
@@ -25,7 +73,7 @@ for evnt in events:
 
     g.add( (event, FOAF.refers_to, entity) )
     """
-    raw_event = json.loads(evnt)
+
     #print(raw_contract.keys())
     
     event        = URIRef(raw_event["URL"])
@@ -38,6 +86,7 @@ for evnt in events:
     image        = URIRef(raw_event["Image"])
     category     = URIRef("https://www.predictit.org/Market/" + raw_event["Category"])
     category_name=Literal(raw_event["Category"])
+    
     g.add( (event, RDF.type, FOAF.Event) )
     g.add( (image, RDF.type, FOAF.Image) )
     g.add( (category, RDF.type, FOAF.Category) )
@@ -57,6 +106,36 @@ for evnt in events:
         g.add( (event, FOAF.refers_to, reference) )
         
     for cont in raw_event["Contracts"]:
+        ##########SQLite###################
+        contract     = str(cont["URL"])
+        name         = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["Name"]).split()])
+        
+        ID           = str(cont["ID"])
+        short_name   = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["ShortName"]).split()])
+        
+        long_name    = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["LongName"]).split()])
+        
+        ticker       = str(cont["TickerSymbol"])
+        date_end     = str(cont["DateEnd"])
+        image        = str(cont["Image"])
+        status       = str(cont["Status"])
+        last_trade_p = handle_missing(cont["LastTradePrice"])
+        best_buy_yes = handle_missing(cont["BestBuyYesCost"])
+        best_buy_no  = handle_missing(cont["BestBuyNoCost"])
+        best_sell_yes= handle_missing(cont["BestSellYesCost"])
+        best_sell_no = handle_missing(cont["BestSellNoCost"])
+        last_close_p = handle_missing(cont["LastClosePrice"])
+        values = str(tuple((name,ID, ID_str, ticker, short_name, long_name, date_end, status, image, last_trade_p, best_buy_yes, best_buy_no, best_sell_yes, best_sell_no, last_close_p)))
+        #print(values)
+        
+        cursor.execute("INSERT INTO contracts VALUES" + str(values))
+        """
+        cursor.execute('''CREATE TABLE contracts
+             (name text, ID text, question text, ticker text, short_name text, long_name text, date_end text, status text, image_url text, last_trade_price real, best_buy_yes real, best_buy_no real, best_sell_yes real, best_sell_no real, last_close_price real)''')
+"""
+        # Save (commit) the changes
+        conn.commit()
+        ########################################################
         contract     = URIRef(cont["URL"])
         name         = Literal(cont["Name"])
         ID           = Literal(cont["ID"])
@@ -106,6 +185,7 @@ for s,_,n in g.triples((None, RDF['type'], FOAF.Event)):
     for t, _, m in my_triples:
         print(m)
 
+        
 print("\n\n\n\nExample 2, Queries all shortnames for events only in the US politics category")
 
 my_triples=[]
@@ -130,6 +210,7 @@ for e,_,t in g.triples((None, FOAF['refers_to'], trump)):
 for _, _, n in my_triples:
     print(n)
 
+"""
 
 print("\n\n\n\nExample 4, Queries all events that refer to Hillary Clinton")
 
@@ -141,4 +222,17 @@ for e,_,t in g.triples((None, FOAF['refers_to'], clinton)):
 
 for _, _, n in my_triples:
     print(n)
-                
+"""                
+print("\n\n\n\nExample usage of DBPedia, Donald")
+g=rdflib.Graph()
+g.load('http://dbpedia.org/resource/Donald_Trump')
+for s,p,o in g:
+    print((s,p,o))
+    
+"""
+print("\n\n\n\nExample usage of DBPedia, Hillary")
+g=rdflib.Graph()
+g.load('http://dbpedia.org/resource/Hillary_Clinton')
+for s,p,o in g:
+    print(p)
+"""
