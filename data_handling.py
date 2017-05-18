@@ -22,16 +22,10 @@ def handle_missing(thing):
     else:
         return thing
 ###############SQLITE###############
+
 conn = sqlite3.connect('predictit.db')
 cursor = conn.cursor()
-# Create tables (only need to do this once)
-"""
-cursor.execute('''CREATE TABLE questions
-             (name text, ID text, ticker text, short_name text, time_stamp text, status text, image_url text, category text, category_url text)''')
 
-cursor.execute('''CREATE TABLE contracts
-             (name text, ID text, question text, ticker text, short_name text, long_name text, date_end text, status text, image_url text, last_trade_price real, best_buy_yes real, best_buy_no real, best_sell_yes real, best_sell_no real, last_close_price real)''')
-"""
 ##############TABLES##########################################
 
 pyredictit_api = pyredictit()
@@ -175,7 +169,8 @@ for evnt in events:
         g.add( (contract, FOAF.best_buy_no, best_buy_no) )
         g.add( (contract, FOAF.best_sell_no, best_sell_no) )
         g.add( (contract, FOAF.last_close_price, last_close_p) )
-
+#close the connection to the sqlite database.         
+conn.close()
 #query all short-names of events (not contracts):
 print("Example 1, Queries all short names for events only (not for contracts)")
 for s,_,n in g.triples((None, RDF['type'], FOAF.Event)):
