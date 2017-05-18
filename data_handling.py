@@ -217,14 +217,14 @@ for e,_,t in g.triples((None, FOAF['refers_to'], clinton)):
 
 for _, _, n in my_triples:
     print(n)
-"""                
+                
 print("\n\n\n\nExample usage of DBPedia, Donald")
 g=rdflib.Graph()
 g.load('http://dbpedia.org/resource/Donald_Trump')
 for s,p,o in g:
     print((s,p,o))
     
-"""
+
 print("\n\n\n\nExample usage of DBPedia, Hillary")
 g=rdflib.Graph()
 g.load('http://dbpedia.org/resource/Hillary_Clinton')
