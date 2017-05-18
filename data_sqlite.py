@@ -1,0 +1,78 @@
+import sqlite3
+from pyredictit import pyredictit
+import json
+import sys, os
+sys.path.append(os.path.abspath("../vars"))
+from env_vars import *
+
+# to handle missing values for some of the type of prices (real values are expected)
+def handle_missing(thing):
+    try:
+        thing=float(thing)
+    except:
+        thing = thing
+        
+    if type(thing)!=type(float(1)):
+        return float(-1.0)
+    #a missing value is denoted by a floating point version of negative 1
+    else:
+        return thing
+
+
+conn = sqlite3.connect('predictit.db')
+cursor = conn.cursor()
+pyredictit_api = pyredictit()
+pyredictit_api.create_authed_session(username=user_name,password=password)
+events = pyredictit_api.search_for_contracts()
+
+for evnt in events:
+        ######first SQLITE #############
+            # Insert a row of data
+    raw_event = json.loads(evnt)
+    event_str    = str(raw_event["URL"])
+    name         = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["Name"]).split()])
+    
+    ID_str       = str(raw_event["ID"])
+    ticker       = str(raw_event["TickerSymbol"])
+    short_name   = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["ShortName"]).split()])
+    time_stamp   = str(raw_event["TimeStamp"])
+    status       = str(raw_event["Status"])
+    image        = str(raw_event["Image"])
+    category     = str("https://www.predictit.org/Market/" + raw_event["Category"])
+    category_name= str(raw_event["Category"])
+
+    values = str(tuple((name,ID_str, ticker, short_name, time_stamp, status, image, category_name, category)))
+    #print(values)
+    cursor.execute("INSERT INTO questions VALUES" + str(values))
+
+    # Save (commit) the changes
+    conn.commit()
+
+    for cont in raw_event["Contracts"]:
+                ##########SQLite###################
+        contract     = str(cont["URL"])
+        name         = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["Name"]).split()])
+
+        ID           = str(cont["ID"])
+        short_name   = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["ShortName"]).split()])
+
+        long_name    = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(cont["LongName"]).split()])
+
+        ticker       = str(cont["TickerSymbol"])
+        date_end     = str(cont["DateEnd"])
+        image        = str(cont["Image"])
+        status       = str(cont["Status"])
+        last_trade_p = handle_missing(cont["LastTradePrice"])
+        best_buy_yes = handle_missing(cont["BestBuyYesCost"])
+        best_buy_no  = handle_missing(cont["BestBuyNoCost"])
+        best_sell_yes= handle_missing(cont["BestSellYesCost"])
+        best_sell_no = handle_missing(cont["BestSellNoCost"])
+        last_close_p = handle_missing(cont["LastClosePrice"])
+
+        values = str(tuple((name,ID, ID_str, ticker, short_name, long_name, date_end, status, image, last_trade_p, best_buy_yes, best_buy_no, best_sell_yes, best_sell_no, last_close_p)))
+        #print(values)
+        cursor.execute("INSERT INTO contracts VALUES" + str(values))
+        conn.commit()
+
+conn.close()
+        

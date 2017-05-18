@@ -1,0 +1,38 @@
+import sqlite3
+from pyredictit import pyredictit
+import json
+import sys, os
+sys.path.append(os.path.abspath("../vars"))
+from env_vars import *
+
+# to handle missing values for some of the type of prices (real values are expected)
+def handle_missing(thing):
+    try:
+        thing=float(thing)
+    except:
+        thing = thing
+        
+    if type(thing)!=type(float(1)):
+        return float(-1.0)
+    #a missing value is denoted by a floating point version of negative 1
+    else:
+        return thing
+
+
+conn = sqlite3.connect('predictit.db')
+cursor = conn.cursor()
+pyredictit_api = pyredictit()
+pyredictit_api.create_authed_session(username=user_name,password=password)
+events = pyredictit_api.search_for_contracts()
+
+for evnt in events:
+        ######first SQLITE #############
+            # Insert a row of data
+    raw_event = json.loads(evnt)
+    event_str    = str(raw_event["URL"])
+    name         = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["Name"]).split()])
+    
+    ID_str       = str(raw_event["ID"])
+    ticker       = str(raw_event["TickerSymbol"])
+    short_name   = " ".join([''.join(e for e in strin if e.isalnum())  for strin in str(raw_event["ShortName"]).split()])
+    
