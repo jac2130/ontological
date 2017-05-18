@@ -1,3 +1,5 @@
+import sqlite3
+
 conn = sqlite3.connect('predictit.db')
 cursor = conn.cursor()
 # Create tables (only need to do this once)
