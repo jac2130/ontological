@@ -1,3 +1,4 @@
+from rdflib.store import Store, VALID_STORE, NO_STORE
 from rdflib import Graph, URIRef, BNode, Literal, Namespace
 from rdflib.namespace import RDF, FOAF
 import rdflib
@@ -14,9 +15,9 @@ pyredictit_api = pyredictit()
 pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
 
-n = Namespace("https://www.predictit.org/Market/")
+n = Namespace("https://www.collectiwise,com/rdf/")
 
-g = Graph('Sleepycat', identifier='predictit')
+g = Graph('Sleepycat', n)
 # first time create the store:
 graph.open('/root/data/', create = True)
 
