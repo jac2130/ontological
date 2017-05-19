@@ -15,11 +15,12 @@ pyredictit_api = pyredictit()
 pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
 
-n = Namespace("https://www.collectiwise,com/rdf/")
+#n = Namespace("https://www.collectiwise,com/rdf/")
+configString = "user=postgres dbname=predictit"
 
-g = Graph('Sleepycat', n)
+g = Graph('PostgreSQL', identifier=URIRef("http://example.com/g43"))
 # first time create the store:
-graph.open('/root/data/', create = True)
+g.open(configString, create=True)
 
 for evnt in events:
     raw_event = json.loads(evnt)
