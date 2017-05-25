@@ -16,6 +16,7 @@ pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
 
 #n = Namespace("https://www.collectiwise,com/rdf/")
+
 configString = "user=postgres host=postgres_triple password=postgres dbname=predictit"
 
 g = Graph('PostgreSQL', identifier=URIRef("http://example.com/g43"))
