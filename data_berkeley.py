@@ -16,7 +16,7 @@ pyredictit_api.create_authed_session(username=user_name,password=password)
 events = pyredictit_api.search_for_contracts()
 
 #n = Namespace("https://www.collectiwise,com/rdf/")
-configString = "user=postgres dbname=predictit"
+configString = "user=postgres host=postgres_triple password=postgres dbname=predictit"
 
 g = Graph('PostgreSQL', identifier=URIRef("http://example.com/g43"))
 # first time create the store:
@@ -104,4 +104,4 @@ for e,_,t in g.triples((None, FOAF['refers_to'], trump)):
 for _, _, n in my_triples:
     print(n)
 
-graph.close()
+g.close()
