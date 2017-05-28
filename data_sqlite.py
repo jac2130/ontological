@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 from pyredictit import pyredictit
 import json
@@ -43,8 +44,23 @@ for evnt in events:
 
     values = str(tuple((name, event_str, ID_str, ticker, short_name, time_stamp, status, image, category_name, category)))
     #print(values)
-    cursor.execute("INSERT INTO questions VALUES" + str(values))
-
+    questions=cursor.execute("SELECT * FROM questions WHERE ID="+ID_str)
+    
+    for question in questions:
+        if not question:
+            cursor.execute("INSERT INTO questions VALUES" + str(values))
+            for q in cursor.execute("SELECT * FROM questions WHERE ID="+ID_str):
+                print(q)
+                
+        else:
+            pass
+        
+    #create new time stamp
+    time_stamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    
+    values = str(tuple((ID_str, status, time_stamp)))
+                 
+    cursor.execute("INSERT INTO question_vars VALUES" + str(values))
     # Save (commit) the changes
     conn.commit()
 
@@ -68,13 +84,20 @@ for evnt in events:
         best_sell_yes= handle_missing(cont["BestSellYesCost"])
         best_sell_no = handle_missing(cont["BestSellNoCost"])
         last_close_p = handle_missing(cont["LastClosePrice"])
-
-        values = str(tuple((name,contract, ID, ID_str, ticker, short_name, long_name,image)))
-        #print(values)
-        cursor.execute("INSERT INTO contracts VALUES" + str(values))
-        #create time stamp
-        time_stamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
         
+        
+        
+        values = str(tuple((name,contract, ID, ID_str, ticker, short_name, long_name,image, time_stamp)))
+
+        
+        contracts=cursor.execute("SELECT * FROM contracts WHERE ID="+ID)
+        for contract in contracts:
+            if not contract:
+                print(shortname)
+                cursor.execute("INSERT INTO contracts VALUES" + str(values))
+            else:
+                pass
+            
         values = str(tuple((ID, time_stamp, date_end, status, last_trade_p, best_buy_yes, best_buy_no, best_sell_yes, best_sell_no, last_close_p)))
         
         cursor.execute("INSERT INTO contract_vars VALUES" + str(values))

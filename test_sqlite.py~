@@ -1,0 +1,13 @@
+
+import datetime
+import sqlite3
+import json
+conn = sqlite3.connect('predictit.db')
+cursor = conn.cursor()
+
+events=[]
+for name, event_str, ID_str, ticker, short_name, time_stamp, status, image, category_name, category in cursor.execute("SELECT * FROM questions WHERE ID='2662'"):
+    events.append(tuple((name, event_str, ticker)))
+
+for event in set(events):
+    print("\n".join(list(event)))
