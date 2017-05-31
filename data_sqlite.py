@@ -1,12 +1,16 @@
 from pyredictit import pyredictit
 import json
 import sys, os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "collectiwise_backend.settings")
+
 root =os.path.abspath("../../../../..")
 sys.path.append(root)
+print(os.path.abspath("../../"))
+sys.path.append(os.path.abspath("../../"))
 sys.path.append("/usr/local/lib/python2.7/dist-packages")
 from env_vars import *
-
-"""
+#sys.path.append("../../../")
+from models import Event
 # to handle missing values for some of the type of prices (real values are expected)
 def handle_missing(thing):
     try:
@@ -20,7 +24,7 @@ def handle_missing(thing):
     else:
         return thing
 
-
+"""
 conn = sqlite3.connect('predictit.db')
 cursor = conn.cursor()
 pyredictit_api = pyredictit()
