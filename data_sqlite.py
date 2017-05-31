@@ -1,11 +1,12 @@
-import datetime
-import sqlite3
 from pyredictit import pyredictit
 import json
 import sys, os
-sys.path.append(os.path.abspath("../vars"))
+root =os.path.abspath("../../../../..")
+sys.path.append(root)
+sys.path.append("/usr/local/lib/python2.7/dist-packages")
 from env_vars import *
 
+"""
 # to handle missing values for some of the type of prices (real values are expected)
 def handle_missing(thing):
     try:
@@ -105,3 +106,4 @@ for evnt in events:
 
 conn.close()
         
+"""
